@@ -22,17 +22,48 @@ const mainState = {
         this.labelScore = game.add.text(20, 20, "0", {
             font: "30px Arial", fill: "#ffffff"
         });
+
+        // Move the anchor to the lest and downward
+        this.bird.anchor.setTo(-.2, .5);
     },
 
     update: function() {
         if (this.bird.y < 0 || this.bird.y > 490) {
             this.restartGame();
         }
-        game.physics.arcade.overlap(this.bird, this.pipes, this.restartGame, null, this);
+        game.physics.arcade.overlap(this.bird, this.pipes, this.hitPipe, null, this);
+        if (this.bird.angle < 20)
+            this.bird.angle += 1;
     },
 
     jump: function() {
+        if (this.bird.alive === false)
+            return;
+
         this.bird.body.velocity.y = - 350;
+
+        // Create an animation on the bird
+        const animation = game.add.tween(this.bird);
+
+        // Change the angle of the bird to -20 degree in 100 millisecond
+        animation.to({angle: -20}, 100);
+
+        // And start the animation
+        animation.start();
+    },
+
+    hitPipe: function() {
+        if (this.bird.alive === false) {
+            return;
+        }
+
+        this.bird.alive = false;
+
+        game.time.events.remove(this.timer);
+
+        this.pipes.forEach(function(pipe) {
+            pipe.body.velocity.x = 0;
+        }, this);
     },
 
     restartGame: function() {
@@ -56,7 +87,7 @@ const mainState = {
         // Add the 6 pipes
         // With one big hole at position 'hole' and 'hole + 1';
         for (let i = 0; i < 8; i++) {
-            if (i != hole && i != hole + 1)
+            if (i !== hole && i !== hole + 1)
                 this.addOnePipe(400, i * 60 + 10)
         }
 
